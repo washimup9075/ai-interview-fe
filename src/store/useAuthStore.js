@@ -16,7 +16,7 @@ const useAuthStore=create((set)=>({
             const response = await signupUser(data);
             return response;
         } catch (error) {
-             console.log(error.response?.data);
+             console.error("Signup error:", error?.response?.data || error?.message);
              throw error;
         }finally{
             set({isSigningUp:false})
@@ -32,7 +32,7 @@ const useAuthStore=create((set)=>({
             )
         return user;
         } catch (error) {
-            console.log(error.response?.data)
+            console.error("Login error:", error?.response?.data || error?.message);
             throw error;
         }finally{
             set({isLoggingIn:false})
@@ -58,7 +58,7 @@ const useAuthStore=create((set)=>({
             )
             return user;
         } catch (error) {
-            console.log("Error in checkAuth");
+            console.error("Error in checkAuth:", error?.response?.data || error?.message);
             set(
                 {authUser:null},
                 
