@@ -27,10 +27,13 @@ const useAuthStore=create((set)=>({
         try {
             set({isLoggingIn:true})
             const user= await loginUser(data);
-            set(
-                {authUser:user}
-            )
-        return user;
+            if (!user?.token) {
+                localStorage.removeItem("token");
+                throw new Error("Login response did not include an authentication token. Redeploy the latest backend.");
+            }
+            localStorage.setItem("token", user.token);
+            set({ authUser: user })
+            return user;
         } catch (error) {
             console.error("Login error:", error?.response?.data || error?.message);
             throw error;
@@ -42,6 +45,7 @@ const useAuthStore=create((set)=>({
         // api call
         try {
             await logoutUser();
+            localStorage.removeItem("token");
             set({
                 authUser:null
             })
@@ -52,21 +56,22 @@ const useAuthStore=create((set)=>({
     },
     checkAuth:async()=>{
         try {
-            const user=await checkAuthUser();
-            set(
-                {authUser:user}
-            )
-            return user;
+            const token = localStorage.getItem("token");
+            if (token) {
+                const user=await checkAuthUser();
+                set({ authUser: user })
+                return user;
+            }
+            set({ authUser: null });
+            return null;
         } catch (error) {
             console.error("Error in checkAuth:", error?.response?.data || error?.message);
-            set(
-                {authUser:null},
-                
-            )
+            if (error?.response?.status === 401) {
+                localStorage.removeItem("token");
+            }
+            set({ authUser: null });
         }finally{
-            set(
-                {isCheckingAuth:false}
-            )
+            set({ isCheckingAuth: false })
         }
     }
 }))
