@@ -1,7 +1,15 @@
-
 import { create } from "zustand";
 import { axiosInstance } from "../lib/axios";
 import {signupUser,loginUser,logoutUser,checkAuthUser} from "../services/auth.service"
+
+if (typeof window !== "undefined") {
+    window.addEventListener("auth:unauthorized", () => {
+        useAuthStore.setState({ authUser: null, isCheckingAuth: false });
+        if (!window.location.pathname.startsWith("/login")) {
+            window.location.replace("/login");
+        }
+    });
+}
 
 const useAuthStore=create((set)=>({
     authUser:null,
@@ -27,11 +35,9 @@ const useAuthStore=create((set)=>({
         try {
             set({isLoggingIn:true})
             const user= await loginUser(data);
-            if (!user?.token) {
-                localStorage.removeItem("token");
-                throw new Error("Login response did not include an authentication token. Redeploy the latest backend.");
+            if (user?.token) {
+                localStorage.setItem("token", user.token);
             }
-            localStorage.setItem("token", user.token);
             set({ authUser: user })
             return user;
         } catch (error) {

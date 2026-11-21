@@ -170,7 +170,11 @@ export default function CreateInterview() {
       }
     } catch (error) {
       console.error("Error creating interview:", error);
-      toast.error(error.response?.data?.message || "Failed to generate interview questions.");
+      if (error.response?.status === 401) {
+        toast.error("Your session has expired. Please log in again.");
+      } else {
+        toast.error(error.response?.data?.message || "Failed to generate interview questions.");
+      }
     } finally {
       setLoading(false);
     }
